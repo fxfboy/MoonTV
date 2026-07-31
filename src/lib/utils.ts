@@ -29,15 +29,25 @@ export function getImageProxyUrl(): string | null {
 }
 
 /**
+ * 豆瓣图片 CDN 镜像。豆瓣对浏览器发起的跨站图片请求返回 418，
+ * 必须换域名或由服务端带 Referer 转发才能加载。
+ */
+const DOUBAN_IMAGE_CDN = 'img.doubanio.cmliussss.net';
+const DOUBAN_IMAGE_HOST_PATTERN = /img\d+\.doubanio\.com/g;
+
+/**
  * 处理图片 URL，如果设置了图片代理则使用代理
  */
 export function processImageUrl(originalUrl: string): string {
   if (!originalUrl) return originalUrl;
 
   const proxyUrl = getImageProxyUrl();
-  if (!proxyUrl) return originalUrl;
+  if (proxyUrl) {
+    return `${proxyUrl}${encodeURIComponent(originalUrl)}`;
+  }
 
-  return `${proxyUrl}${encodeURIComponent(originalUrl)}`;
+  // 未配置自定义代理时，豆瓣图片走 CDN 镜像
+  return originalUrl.replace(DOUBAN_IMAGE_HOST_PATTERN, DOUBAN_IMAGE_CDN);
 }
 
 /**
